@@ -176,6 +176,35 @@ impl Exponential {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct Threshold<T, const N: usize> {
+    inner: T,
+    threshold: f32,
+}
+
+impl<T, const N: usize> Threshold<T, N>
+where
+    T: WeightFn<N>,
+{
+    pub fn new<I>(inner: T, a: &I, b: &I) -> Self
+    where
+        I: Vectorize<N>,
+    {
+        let threshold = inner.weight(&a.vectorize(), &b.vectorize()).unwrap_or(0.0);
+        Threshold { inner, threshold }
+    }
+}
+
+impl<T, const N: usize> WeightFn<N> for Threshold<T, N>
+where
+    T: WeightFn<N>,
+{
+    fn weight(&self, target: &[f32; N], other: &[f32; N]) -> Option<f32> {
+        let weight = self.inner.weight(target, other)?;
+        Some(if weight < self.threshold { 0.0 } else { weight })
+    }
+}
+
 fn add_assign<const N: usize>(a: &mut [f32; N], b: &[f32; N]) {
     for (a, b) in a.iter_mut().zip(b) {
         *a += *b;

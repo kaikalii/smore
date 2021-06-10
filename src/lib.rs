@@ -221,7 +221,7 @@ mod test {
     }
     #[test]
     fn add() {
-        const RESOLUTION: i32 = 100;
+        const RESOLUTION: i32 = 8;
         const MIN: i32 = -1000;
         const MAX: i32 = 1000;
         let training = (MIN / RESOLUTION..MAX / RESOLUTION)
@@ -258,13 +258,18 @@ mod test {
         let eval = smore.eval(weight);
         for (input, output) in &test_data {
             let evaled: f32 = eval.get(input);
+            let error = (*output - evaled).abs();
             println!(
                 "{} + {} = {} | error: {}",
-                input[0],
-                input[1],
-                evaled,
-                (*output - evaled).abs()
+                input[0], input[1], evaled, error
             );
+            assert!(error < RESOLUTION as f32);
+        }
+
+        let mut i = 0.0;
+        while i < 100.0 {
+            println!("{}", i);
+            i = eval.get(&[i, 6.0]);
         }
     }
 }
